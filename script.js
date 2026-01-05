@@ -28,21 +28,66 @@ function generateQR() {
 }
 
 function downloadQR() {
-  const canvas = document.querySelector("#qrBox canvas");
-  if (!canvas) return;
+  const qrBox = document.getElementById("qrBox");
 
-  canvas.toBlob(function(blob) {
+  // 1️⃣ لو Canvas
+  const canvas = qrBox.querySelector("canvas");
+  if (canvas) {
+    canvas.toBlob(blob => saveBlob(blob));
+    return;
+  }
+
+  // 2️⃣ لو IMG
+  const img = qrBox.querySelector("img");
+  if (img) {
+    fetch(img.src)
+      .then(res => res.blob())
+      .then(blob => saveBlob(blob));
+    return;
+  }
+
+  // 3️⃣ لو SVG (دي مشكلة الموبايل الحقيقية)
+  const svg = qrBox.querySelector("svg");
+  if (svg) {
+    const serializer = new XMLSerializer();
+    const svgStr = serializer.serializeToString(svg);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 300;
+    canvas.height = 300;
+
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+
+    const blob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "qr-code.png";
-    document.body.appendChild(a);
-    a.click();
+    img.onload = function () {
+      ctx.drawImage(img, 0, 0, 300, 300);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(blob => saveBlob(blob));
+    };
 
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  });
+    img.src = url;
+    return;
+  }
+
+  alert("لم يتم العثور على QR");
 }
+
+function saveBlob(blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+
+  a.href = url;
+  a.download = "qr-code.png";
+  document.body.appendChild(a);
+  a.click();
+
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+
 
 
