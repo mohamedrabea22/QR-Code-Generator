@@ -28,10 +28,11 @@ function generateQR() {
 }
 
 function downloadQR() {
-  const img = document.querySelector("#qrBox img");
-  const link = document.createElement("a");
+  const canvas = document.querySelector("#qrBox canvas");
+  if (!canvas) return;
 
-  link.href = img.src;
+  const link = document.createElement("a");
   link.download = "qr-code.png";
+  link.href = canvas.toDataURL("image/png");
   link.click();
 }
