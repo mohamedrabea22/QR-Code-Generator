@@ -31,8 +31,18 @@ function downloadQR() {
   const canvas = document.querySelector("#qrBox canvas");
   if (!canvas) return;
 
-  const link = document.createElement("a");
-  link.download = "qr-code.png";
-  link.href = canvas.toDataURL("image/png");
-  link.click();
+  canvas.toBlob(function(blob) {
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "qr-code.png";
+    document.body.appendChild(a);
+    a.click();
+
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
 }
+
+
